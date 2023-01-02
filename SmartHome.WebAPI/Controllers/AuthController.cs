@@ -1,24 +1,18 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using SmartHome.Application.Features.Authentication;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Web;
 
 namespace SmartHome.WebAPI.Controllers
 {
-    [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : ApiControllerBase
     {
         [HttpGet("auth")]
-        public IActionResult Auth(string? redirect_uri, string? state)
+        public async Task<IActionResult> Auth([FromQuery]GetAuthCodeParameters parameters)
         {
-            var byteArray = new byte[64];
-            new Random().NextBytes(byteArray);
-            var authCode = Encoding.UTF8.GetString(byteArray);
-            authCode = "abcdefg";
+            var authCode = (await Mediator.Send(new GetAuthCodeQuery(parameters))).AuthCode;
 
-            var redirectUrl = $"{redirect_uri}?code={authCode}?state={state}";
+            var redirectUrl = $"{parameters.RedirectUri}?code={authCode}?state={parameters.State}";
 
             return Redirect(redirectUrl);
         }
